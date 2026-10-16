@@ -1,0 +1,22 @@
+{
+  "enabled": { "type": "bool", "description": "总开关", "default": true },
+  "strip_leading_marks": { "type": "bool", "description": "去掉消息开头的标记（主功能）", "default": true },
+  "leading_marks": {
+    "type": "string",
+    "description": "要去掉的开头字符（可填多个）",
+    "hint": "默认「……」。开头连续出现这些字符时会全部去掉，再去掉残留空白；只影响开头，不动中间内容",
+    "default": "……"
+  },
+  "strip_think_tags": { "type": "bool", "description": "去掉 <think>/<thinking>/<reasoning> 等思维链标签", "hint": "防止模型把推理过程漏进正文", "default": true },
+  "strip_zero_width": { "type": "bool", "description": "去掉零宽字符（U+200B/200C/200D/FEFF）", "default": true },
+  "collapse_punctuation": { "type": "bool", "description": "合并连续重复的标点（。。。→。，？？？→？）", "default": false },
+  "strip_self_prefix": { "type": "bool", "description": "去掉开头的自称前缀（AI：/助手：/机器人：等）", "default": false },
+  "group_enable": { "type": "bool", "description": "群聊里生效", "default": true },
+  "private_enable": { "type": "bool", "description": "私聊里生效", "default": true },
+  "blacklist": {
+    "type": "list",
+    "description": "不清理的会话（黑名单）",
+    "hint": "填 群号 / 用户号 / 完整会话标识，可加多项",
+    "default": []
+  }
+}
