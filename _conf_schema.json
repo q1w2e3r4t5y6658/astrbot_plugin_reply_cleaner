@@ -7,6 +7,9 @@
     "hint": "默认「……」。开头连续出现这些字符时会全部去掉，再去掉残留空白；只影响开头，不动中间内容",
     "default": "……"
   },
+  "strip_per_line": { "type": "bool", "description": "逐行清理开头标记（推荐开）", "hint": "模型常每行都以「……」开头，而分段插件会按行拆成多条消息；只清整条开头的话，后续分段还是会带「……」", "default": true },
+  "drop_empty_lines": { "type": "bool", "description": "某行被清空后直接删掉该行", "default": true },
+  "drop_whole_if_empty": { "type": "bool", "description": "整条清完什么都不剩时就不发这条消息", "hint": "例如模型只回了「……」。关掉的话会还原原文照发", "default": true },
   "strip_think_tags": { "type": "bool", "description": "去掉 <think>/<thinking>/<reasoning> 等思维链标签", "hint": "防止模型把推理过程漏进正文", "default": true },
   "strip_zero_width": { "type": "bool", "description": "去掉零宽字符（U+200B/200C/200D/FEFF）", "default": true },
   "collapse_punctuation": { "type": "bool", "description": "合并连续重复的标点（。。。→。，？？？→？）", "default": false },

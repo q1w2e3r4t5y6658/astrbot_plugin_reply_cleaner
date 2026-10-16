@@ -3,7 +3,8 @@
 主要功能（都可单独开关）：
 
 1. **去掉开头的标记**（默认「……」）—— 很多人格习惯每条都「……」开头，
-   发出去显得每句都欲言又止。只在**消息开头**生效，不动中间内容。
+   发出去显得每句都欲言又止。默认**逐行清理**（因为分段插件会把每行拆成独立消息，
+   只清整条开头的话后续分段仍会带「……」）。
 2. **去掉思维链标签** —— 有些模型会把 <think>…</think> 之类的推理内容漏进正文。
 3. **零宽字符清理** —— U+200B/U+200C/U+200D/U+FEFF 这类看不见的字符会搞得排版诡异。
 4. **合并重复标点**（可选）—— 「。。。」→「。」「？？？」→「？」。
@@ -40,7 +41,7 @@ _PUNCT_REPEAT_RE = re.compile(r"([。！？，、；：])\1{1,}")
     "astrbot_plugin_reply_cleaner",
     "q1w2e3r4t5y6658",
     "清理模型输出：去掉开头的「……」、思维链标签、零宽字符、重复标点等，不改人格提示词",
-    "1.0.0",
+    "1.0.1",
     "https://github.com/q1w2e3r4t5y6658/astrbot_plugin_reply_cleaner",
 )
 class ReplyCleanerPlugin(Star):
@@ -134,9 +135,23 @@ class ReplyCleanerPlugin(Star):
             out = _SELF_PREFIX_RE.sub("", out)
 
         # ⑤ 开头标记（本插件的主功能）
-        if is_first and self._cfg_bool("strip_leading_marks", True):
+        if self._cfg_bool("strip_leading_marks", True):
             marks = str(self._cfg("leading_marks", DEFAULT_LEADING_MARKS))
-            out = ReplyCleanerPlugin.strip_leading(out, marks)
+            if self._cfg_bool("strip_per_line", True):
+                # 模型常常【每一行】都以「……」开头，而分段插件会按行拆成多条，
+                # 所以必须逐行清，否则后续分段的开头还是带「……」
+                lines = out.split("\n")
+                lines = [ReplyCleanerPlugin.strip_leading(line, marks) for line in lines]
+                if self._cfg_bool("drop_empty_lines", True):
+                    kept = [line for line in lines if line.strip()]
+                    if kept:
+                        lines = kept
+                    else:
+                        # 全被清空 → 交给外层「整条为空则还原」处理
+                        lines = []
+                out = "\n".join(lines)
+            elif is_first:
+                out = ReplyCleanerPlugin.strip_leading(out, marks)
 
         return out
 
@@ -188,9 +203,15 @@ class ReplyCleanerPlugin(Star):
                 comp.text = cleaned
                 changed = True
 
-        # 清完全空了就整条还原 —— 绝不发出空消息
         after = "".join(c.text for c in chain)
         if not after.strip():
+            if self._cfg_bool("drop_whole_if_empty", True):
+                # 整条都只剩被清掉的内容（例如只发了「……」）→ 干脆不发
+                for comp in chain:
+                    comp.text = ""
+                logger.debug("[reply_cleaner] 清理后整条为空，已置空不发送")
+                return
+            # 否则还原原文，绝不发出空消息
             for idx, comp in enumerate(chain):
                 comp.text = originals[idx]
             logger.debug("[reply_cleaner] 清理后为空，已还原原文")

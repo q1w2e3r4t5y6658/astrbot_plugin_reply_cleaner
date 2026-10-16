@@ -5,6 +5,17 @@
 
 ---
 
+## [1.0.1] - 2026-10-16
+
+### 修复
+- **改为「逐行」清理开头标记**（新增 `strip_per_line`，默认开）
+  - 之前只清整条最开头那一个，但模型常常**每一行**都以「……」开头；
+    配合分段插件（每行拆成一条消息），后续那几条的开头仍会带「……」
+  - 现在逐行清理，分段后每条消息的开头都是干净的
+- 新增 `drop_empty_lines`（默认开）：某行被清空后直接删掉该行
+
+---
+
 ## [1.0.0] - 2026-10-16
 
 ### 新增
@@ -18,4 +29,5 @@
 
 ---
 
+[1.0.1]: https://github.com/q1w2e3r4t5y6658/astrbot_plugin_reply_cleaner/releases/tag/v1.0.1
 [1.0.0]: https://github.com/q1w2e3r4t5y6658/astrbot_plugin_reply_cleaner/releases/tag/v1.0.0
