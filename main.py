@@ -26,6 +26,7 @@ from astrbot.api.message_components import Plain
 from astrbot.api.star import Context, Star, register
 
 DEFAULT_LEADING_MARKS = "……"
+DEFAULT_TRAILING_MARKS = "……"
 _ZERO_WIDTH = "\u200b\u200c\u200d\u2060\ufeff"
 _THINK_RES = (
     re.compile(r"<think(?:ing)?>.*?</think(?:ing)?>", re.S | re.I),
@@ -41,7 +42,7 @@ _PUNCT_REPEAT_RE = re.compile(r"([。！？，、；：])\1{1,}")
     "astrbot_plugin_reply_cleaner",
     "q1w2e3r4t5y6658",
     "清理模型输出：去掉开头的「……」、思维链标签、零宽字符、重复标点等，不改人格提示词",
-    "1.0.1",
+    "1.0.3",
     "https://github.com/q1w2e3r4t5y6658/astrbot_plugin_reply_cleaner",
 )
 class ReplyCleanerPlugin(Star):
@@ -111,6 +112,16 @@ class ReplyCleanerPlugin(Star):
             i += 1
         return text[i:].lstrip() if i else text
 
+    @staticmethod
+    def strip_trailing(text: str, marks: str) -> str:
+        """去掉结尾连续的指定字符，再去掉残留空白。"""
+        if not marks:
+            return text
+        i = len(text)
+        while i > 0 and text[i - 1] in marks:
+            i -= 1
+        return text[:i].rstrip() if i < len(text) else text
+
     def clean_text(self, text: str, is_first: bool) -> str:
         """按配置逐项清理一段文本。"""
         if not text:
@@ -134,24 +145,32 @@ class ReplyCleanerPlugin(Star):
         if is_first and self._cfg_bool("strip_self_prefix", False):
             out = _SELF_PREFIX_RE.sub("", out)
 
-        # ⑤ 开头标记（本插件的主功能）
-        if self._cfg_bool("strip_leading_marks", True):
-            marks = str(self._cfg("leading_marks", DEFAULT_LEADING_MARKS))
+        # ⑤ 首尾标记（本插件的主功能）：去掉开头的「……」和结尾的「……」
+        do_lead = self._cfg_bool("strip_leading_marks", True)
+        do_trail = self._cfg_bool("strip_trailing_marks", True)
+        lead_marks = str(self._cfg("leading_marks", DEFAULT_LEADING_MARKS))
+        trail_marks = str(self._cfg("trailing_marks", DEFAULT_TRAILING_MARKS))
+
+        if do_lead or do_trail:
             if self._cfg_bool("strip_per_line", True):
-                # 模型常常【每一行】都以「……」开头，而分段插件会按行拆成多条，
-                # 所以必须逐行清，否则后续分段的开头还是带「……」
-                lines = out.split("\n")
-                lines = [ReplyCleanerPlugin.strip_leading(line, marks) for line in lines]
+                # 开头标记【逐行】清：模型常常每一行都以「……」开头，
+                # 而分段插件会按行拆成多条消息，只清整条开头的话后续分段还是带「……」
+                cleaned: list[str] = []
+                for line in out.split("\n"):
+                    if do_lead:
+                        line = ReplyCleanerPlugin.strip_leading(line, lead_marks)
+                    cleaned.append(line)
                 if self._cfg_bool("drop_empty_lines", True):
-                    kept = [line for line in lines if line.strip()]
-                    if kept:
-                        lines = kept
-                    else:
-                        # 全被清空 → 交给外层「整条为空则还原」处理
-                        lines = []
-                out = "\n".join(lines)
-            elif is_first:
-                out = ReplyCleanerPlugin.strip_leading(out, marks)
+                    kept = [line for line in cleaned if line.strip()]
+                    cleaned = kept if kept else []
+                out = "\n".join(cleaned)
+            elif is_first and do_lead:
+                out = ReplyCleanerPlugin.strip_leading(out, lead_marks)
+
+            # 结尾标记【只清整条消息的最末尾】：
+            # 中间的省略号（比如拟声词后面的「...」）要保留，只删最后那一个
+            if do_trail:
+                out = ReplyCleanerPlugin.strip_trailing(out, trail_marks)
 
         return out
 

@@ -1,7 +1,7 @@
 name: astrbot_plugin_reply_cleaner
 display_name: 回复清理（开头净化）
 author: q1w2e3r4t5y6658
-version: 1.0.1
+version: 1.0.3
 short_desc: 清掉模型输出里不该发的东西：开头「……」、思维链标签、零宽字符等
 desc: 清理模型回复中不该出现的内容：去掉开头的「……」等标记、去掉 <think> 类思维链标签、去掉零宽字符、可选的重复标点合并与自称前缀清理。只在纯文本模型回复上生效，不改人格提示词，清理后为空会自动还原。
 repo: https://github.com/q1w2e3r4t5y6658/astrbot_plugin_reply_cleaner

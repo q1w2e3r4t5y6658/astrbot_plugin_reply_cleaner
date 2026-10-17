@@ -5,6 +5,23 @@
 
 ---
 
+## [1.0.3] - 2026-10-17
+
+### 修复
+- **结尾标记只清「整条消息的最末尾」**，不再逐行清
+  - 之前逐行清会把拟声词后面的 `...` 也删掉（`呼...` → `呼`）
+  - 现在中间的省略号保留，只删最后那一个：`呼...\n真拿你没办法...` → 末尾的 `...` 去掉，但 `呼...` 保留
+
+---
+
+## [1.0.2] - 2026-10-17
+
+### 新增
+- **去掉消息结尾的标记**（`strip_trailing_marks` / `trailing_marks`，默认开 / `……`）
+  - 和开头清理一样**逐行生效**；把英文句点也加进 `trailing_marks`（如 `……...`）就能连 `...` 一起去掉
+
+---
+
 ## [1.0.1] - 2026-10-16
 
 ### 修复
@@ -29,5 +46,7 @@
 
 ---
 
+[1.0.3]: https://github.com/q1w2e3r4t5y6658/astrbot_plugin_reply_cleaner/releases/tag/v1.0.3
+[1.0.2]: https://github.com/q1w2e3r4t5y6658/astrbot_plugin_reply_cleaner/releases/tag/v1.0.2
 [1.0.1]: https://github.com/q1w2e3r4t5y6658/astrbot_plugin_reply_cleaner/releases/tag/v1.0.1
 [1.0.0]: https://github.com/q1w2e3r4t5y6658/astrbot_plugin_reply_cleaner/releases/tag/v1.0.0
